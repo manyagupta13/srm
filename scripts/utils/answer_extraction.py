@@ -53,6 +53,7 @@ def extract_boxed_text(output: str) -> Optional[str]:
 def extract_answer_math(output: str) -> str:
     """
     Extract and normalize answer from MATH benchmark model output.
+    Handles multiple formats including truncated responses.
     
     Args:
         output: Model output text
@@ -60,10 +61,50 @@ def extract_answer_math(output: str) -> str:
     Returns:
         Normalized answer string
     """
+    # First try: boxed format
     raw_in_box = extract_boxed_text(output)
     if raw_in_box is not None:
         normalized = normalize_answer(raw_in_box)
         return normalized
+    
+    # Second try: Look for "answer is X" or "= X" patterns
+    # Common in step-by-step solutions even if truncated
+    
+    # Pattern: "answer is X" or "answer: X"
+    patterns = [
+        r'(?:answer|Answer|ANSWER)\s*(?:is|:)\s*\$?([^\$\n]+)\$?',
+        r'(?:final answer|Final Answer)\s*(?:is|:)\s*\$?([^\$\n]+)\$?',
+        r'(?:solution|Solution)\s*(?:is|:)\s*\$?([^\$\n]+)\$?',
+        r'(?:therefore|Therefore)\s*,?\s*\$?([^\$\n]+)\$?',
+        # Pattern for "= X" at end of line
+        r'=\s*\$?([^\$\n\.]+)\$?\s*$',
+    ]
+    
+    for pattern in patterns:
+        matches = re.findall(pattern, output, re.MULTILINE)
+        if matches:
+            # Take the last match (most likely the final answer)
+            candidate = matches[-1].strip()
+            # Remove trailing punctuation
+            candidate = re.sub(r'[,\.]$', '', candidate)
+            if candidate:
+                return normalize_answer(candidate)
+    
+    # Third try: Extract last mathematical expression in $ $ or \[ \]
+    math_patterns = [
+        r'\$([^\$]+)\$',
+        r'\\\[([^\]]+)\\\]',
+    ]
+    
+    for pattern in math_patterns:
+        matches = re.findall(pattern, output)
+        if matches:
+            # Take last match
+            candidate = matches[-1].strip()
+            if len(candidate) < 50:  # Reasonable answer length
+                return normalize_answer(candidate)
+    
+    # Last resort: empty string
     return ""
 
 
