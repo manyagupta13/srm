@@ -243,5 +243,5 @@ Hardware used for reported results:
 
 ---
 
-**Maintained by:** [Your Name](https://github.com/yourusername)  
+ 
 **Last Updated:** February 2026
