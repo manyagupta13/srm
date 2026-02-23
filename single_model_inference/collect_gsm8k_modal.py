@@ -31,7 +31,7 @@ DEFAULT_MODEL = "mistralai/Mistral-7B-Instruct-v0.3"
 # DEFAULT_MODEL = "Qwen/Qwen2.5-7B-Instruct"
 # =========================================
 
-app = modal.App("gsm8k-inference-v2")
+app = modal.App("gsm8k-inference-v3-cached")
 image = (modal.Image.debian_slim()
     .pip_install(["torch>=2.0.0", "transformers>=4.30.0", "accelerate", "datasets", "tqdm", "sentencepiece"]))
 
@@ -65,8 +65,79 @@ def create_chat_prompt(system_msg: str, user_msg: str):
         {"role": "user", "content": user_msg},
     ]
 
+
+# ===== MODEL CACHE CLASS =====
+# Loads models once and keeps them in GPU memory for all subsequent inference calls
+@app.cls(image=image, gpu="A100-40GB", timeout=600)
+class InferenceEngine:
+    def __init__(self):
+        """Load and cache all models on initialization"""
+        self.models = {}
+        self.tokenizers = {}
+        self.model_names = ["Qwen/Qwen2.5-7B-Instruct", "mistralai/Mistral-7B-Instruct-v0.3"]
+    
+    def load_models(self):
+        """Load all models into GPU memory - called once"""
+        import torch
+        from transformers import AutoModelForCausalLM, AutoTokenizer
+        
+        torch.manual_seed(42)
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+        
+        print(f"[*] Loading {len(self.model_names)} models on device {device}...")
+        
+        for model_name in self.model_names:
+            if model_name in self.models:
+                print(f"    ✓ {model_name} already loaded")
+                continue
+            
+            print(f"    - Loading {model_name}...")
+            self.tokenizers[model_name] = AutoTokenizer.from_pretrained(model_name)
+            self.models[model_name] = AutoModelForCausalLM.from_pretrained(
+                model_name, torch_dtype=torch.float16, device_map="auto"
+            )
+            print(f"    ✓ {model_name} ready")
+        
+        print(f"[✓] All {len(self.model_names)} models cached in GPU memory")
+    
+    def infer(self, model_name: str, messages: list, max_tokens: int = 512, 
+              temperature: float = 0.0, top_p: float = 1.0, top_k: int = 1):
+        """Run inference using cached model"""
+        import torch
+        
+        if model_name not in self.models or not self.models[model_name]:
+            raise ValueError(f"Model {model_name} not loaded. Available: {list(self.models.keys())}")
+        
+        model = self.models[model_name]
+        tokenizer = self.tokenizers[model_name]
+        
+        # Build prompt text
+        text = ""
+        for msg in messages:
+            if msg.get("role") == "system":
+                text += f"{msg.get('content', '')}\n\n"
+            else:
+                text += msg.get("content", "")
+        
+        inputs = tokenizer(text, return_tensors="pt").to(model.device)
+        
+        with torch.no_grad():
+            gen_kwargs = {"max_new_tokens": max_tokens, "top_p": top_p, "top_k": top_k}
+            if temperature > 0.0:
+                gen_kwargs["temperature"] = temperature
+                gen_kwargs["do_sample"] = True
+            else:
+                gen_kwargs["do_sample"] = False
+            outputs = model.generate(**inputs, **gen_kwargs)
+        
+        generated_text = tokenizer.decode(outputs[0][inputs["input_ids"].shape[-1]:], skip_special_tokens=True)
+        return {"content": generated_text, "token_usage": {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}}
+
+
+# Create singleton instance with both models preloaded
 @app.function(image=image, gpu="A100-40GB", timeout=600)
 def run_inference(model_name: str, messages, max_tokens: int = 512, temperature: float = 0.0, top_p: float = 1.0, top_k: int = 1, decode_seed: int = 42):
+    """Legacy function for backward compatibility - loads model per call (slow)"""
     import torch
     from transformers import AutoModelForCausalLM, AutoTokenizer
     

@@ -1,0 +1,143 @@
+{
+  "strategy": "Hierarchy_Consistency_From_Scratch_GSM",
+  "timestamp": "20260223_150710",
+  "question_count": 5,
+  "extra_calls": 1,
+  "size": 5,
+  "model_list": [
+    "Qwen/Qwen2.5-7B-Instruct",
+    "mistralai/Mistral-7B-Instruct-v0.3"
+  ],
+  "temperature": 0.3,
+  "max_new_tokens": 4096,
+  "token_usage": {
+    "prompt_tokens": 4,
+    "completion_tokens": 4,
+    "total_tokens": 8
+  },
+  "results": [
+    {
+      "question": "Brandon's iPhone is four times as old as Ben's iPhone. Ben's iPhone is two times older than Suzy's iPhone. If Suzy’s iPhone is 1 year old, how old is Brandon’s iPhone?",
+      "reference_answer": "8",
+      "all_agree": false,
+      "final_answer": "8",
+      "is_correct": true,
+      "selected_model": "Qwen/Qwen2.5-7B-Instruct",
+      "reason": "highest_self_consistency(1.00)",
+      "model_records": [
+        {
+          "model_name": "Qwen/Qwen2.5-7B-Instruct",
+          "calls": [
+            {
+              "round": 1,
+              "raw_content": " Let's break down the problem step by step:\n\n1. **Identify the ages of the iPhones:**\n   - We know that Suzy's iPhone is 1 year old.\n   - Ben's iPhone is two times older than Suzy's iPhone.\n\n2. **Calculate Ben's iPhone age:**\n   - Since Suzy's iPhone is 1 year old and Ben's iPhone is two times older, we can calculate Ben's iPhone age as follows:\n     \\[\n     \\text{Ben's iPhone age} = 2 \\times \\text{Suzy's iPhone age} = 2 \\times 1 = 2 \\text{ years}\n     \\]\n\n3. **Calculate Brandon's iPhone age:**\n   - Brandon's iPhone is four times as old as Ben's iPhone.\n   - We already calculated that Ben's iPhone is 2 years old, so:\n     \\[\n     \\text{Brandon's iPhone age} = 4 \\times \\text{Ben's iPhone age} = 4 \\times 2 = 8 \\text{ years}\n     \\]\n\nTherefore, Brandon's iPhone is 8 years old.\n\n#### 8\n####",
+              "extracted_answer": "8",
+              "token_usage": {
+                "prompt_tokens": 1,
+                "completion_tokens": 1,
+                "total_tokens": 2
+              }
+            }
+          ],
+          "vote_counts": {
+            "8": 1
+          },
+          "best_answer": "8",
+          "best_count": 1,
+          "total_usage": {
+            "prompt_tokens": 1,
+            "completion_tokens": 1,
+            "total_tokens": 2
+          }
+        },
+        {
+          "model_name": "mistralai/Mistral-7B-Instruct-v0.3",
+          "calls": [
+            {
+              "round": 1,
+              "raw_content": "\n\nReasoning:\n1. Let's denote the age of Brandon's iPhone as B, Ben's iPhone as Bn, and Suzy's iPhone as S.\n2. From the problem, we know that B = 4 * Bn and Bn = 2 * S + 1.\n3. Substitute the second equation into the first equation: B = 4 * (2 * S + 1).\n4. Solve for B: B = 8 * S + 4.\n5. Since S = 1, we can find the age of Brandon's iPhone: B = 8 * 1 + 4 = 12 years old.\n\n#### 12 years old",
+              "extracted_answer": "12",
+              "token_usage": {
+                "prompt_tokens": 1,
+                "completion_tokens": 1,
+                "total_tokens": 2
+              }
+            }
+          ],
+          "vote_counts": {
+            "12": 1
+          },
+          "best_answer": "12",
+          "best_count": 1,
+          "total_usage": {
+            "prompt_tokens": 1,
+            "completion_tokens": 1,
+            "total_tokens": 2
+          }
+        }
+      ]
+    },
+    {
+      "question": "When Billy was first hired, he was paid at a rate of $10 per hour.  After 2 months, he was given a raise of $0.50 per hour.  On his first anniversary at work, he was given a raise of $1.00 per hour.  Sally just started working at a different business, and her starting salary is $0.50 more per hour than Billy's starting salary was.  If both Billy and Sally work 20 hours, how much more money will Billy earn than Sally, in dollars?",
+      "reference_answer": "20",
+      "all_agree": true,
+      "final_answer": "20",
+      "is_correct": true,
+      "selected_model": "Qwen/Qwen2.5-7B-Instruct",
+      "reason": "highest_self_consistency(1.00)",
+      "model_records": [
+        {
+          "model_name": "Qwen/Qwen2.5-7B-Instruct",
+          "calls": [
+            {
+              "round": 1,
+              "raw_content": " ####\n\nTo solve this problem, we need to calculate the hourly rates for both Billy and Sally, and then determine their earnings over 20 hours of work.\n\n1. **Billy's Hourly Rate Calculation:**\n   - Initial rate: $10 per hour\n   - After 2 months, raise: $0.50 per hour\n     \\[\n     10 + 0.50 = 10.50 \\text{ per hour}\n     \\]\n   - On his first anniversary, another raise: $1.00 per hour\n     \\[\n     10.50 + 1.00 = 11.50 \\text{ per hour}\n     \\]\n\n2. **Sally's Starting Salary:**\n   - Sally's starting salary is $0.50 more per hour than Billy's initial rate.\n     \\[\n     10 + 0.50 = 10.50 \\text{ per hour}\n     \\]\n\n3. **Earnings Calculation:**\n   - Billy's earnings over 20 hours:\n     \\[\n     11.50 \\times 20 = 230 \\text{ dollars}\n     \\]\n   - Sally's earnings over 20 hours:\n     \\[\n     10.50 \\times 20 = 210 \\text{ dollars}\n     \\]\n\n4. **Difference in Earnings:**\n   - The difference between Billy's and Sally's earnings:\n     \\[\n     230 - 210 = 20 \\text{ dollars}\n     \\]\n\nTherefore, Billy earns $20 more than Sally.\n\n#### 20\nThe final answer is 20. #### 20",
+              "extracted_answer": "20",
+              "token_usage": {
+                "prompt_tokens": 1,
+                "completion_tokens": 1,
+                "total_tokens": 2
+              }
+            }
+          ],
+          "vote_counts": {
+            "20": 1
+          },
+          "best_answer": "20",
+          "best_count": 1,
+          "total_usage": {
+            "prompt_tokens": 1,
+            "completion_tokens": 1,
+            "total_tokens": 2
+          }
+        },
+        {
+          "model_name": "mistralai/Mistral-7B-Instruct-v0.3",
+          "calls": [
+            {
+              "round": 1,
+              "raw_content": "\n\nReasoning:\n1. Billy's starting hourly wage was $10.\n2. After 2 months, his hourly wage increased by $0.50, making it $10.50.\n3. On his first anniversary, his hourly wage increased by $1.00, making it $11.50.\n4. Sally's starting hourly wage is $0.50 more than Billy's starting wage, so it is $10.50.\n5. If they both work 20 hours, Billy will earn $11.50 * 20 = $230.\n6. Sally will earn $10.50 * 20 = $210.\n7. The difference in their earnings is $230 - $210 = $20.\n\n#### 20",
+              "extracted_answer": "20",
+              "token_usage": {
+                "prompt_tokens": 1,
+                "completion_tokens": 1,
+                "total_tokens": 2
+              }
+            }
+          ],
+          "vote_counts": {
+            "20": 1
+          },
+          "best_answer": "20",
+          "best_count": 1,
+          "total_usage": {
+            "prompt_tokens": 1,
+            "completion_tokens": 1,
+            "total_tokens": 2
+          }
+        }
+      ]
+    }
+  ],
+  "accuracy": 0.4
+}

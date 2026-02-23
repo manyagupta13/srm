@@ -1,0 +1,20 @@
+{
+  "strategy": "Hierarchy_Consistency_From_Scratch_GSM",
+  "timestamp": "20260223_150420",
+  "question_count": 5,
+  "extra_calls": 1,
+  "size": 5,
+  "model_list": [
+    "Qwen/Qwen2.5-7B-Instruct",
+    "mistralai/Mistral-7B-Instruct-v0.3"
+  ],
+  "temperature": 0.3,
+  "max_new_tokens": 4096,
+  "token_usage": {
+    "prompt_tokens": 0,
+    "completion_tokens": 0,
+    "total_tokens": 0
+  },
+  "results": [],
+  "accuracy": 0.0
+}
