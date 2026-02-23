@@ -16,12 +16,12 @@ from tqdm import tqdm
 # Project utils
 from utils.gsm_utils import extract_answer_gsm, normalize_answer, create_chat_prompt
 
-# Import Modal app from collector
+# Import Modal app and cached engine
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
-from single_model_inference.collect_gsm8k_modal import app as collector_app, run_inference
+from single_model_inference.collect_gsm8k_modal_cached import app, CachedInferenceEngine
 
-# Create orchestrator app in same Modal environment
-app = collector_app
+# Global engine instance (loaded once, reused forever)
+inference_engine = None
 
 ##############################################################################
 
@@ -67,7 +67,7 @@ def repeated_calls_for_model(
         handles = {}
         for i in range(2, extra_calls + 1):
             messages = build_prompt(question_text)
-            handle = run_inference.remote(
+            handle = inference_engine.infer.remote(
                 model_name=model_name,
                 messages=messages,
                 max_tokens=max_new_tokens,
@@ -153,7 +153,7 @@ def get_initial_responses(question_text: str, reference_answer: str, model_list:
     # Fire all inference calls in parallel
     handles = {}
     for model_name in model_list:
-        handle = run_inference.remote(
+        handle = inference_engine.infer.remote(
             model_name=model_name,
             messages=messages,
             max_tokens=max_new_tokens,
@@ -342,7 +342,12 @@ def process_question_wrapper(qtext, ref_ans, model_list, extra_calls, temperatur
 # Main
 ##############################################################################
 
-def main(dataset_file, model_list_str, extra_calls, size, num_workers, temperature, max_new_tokens, sc_after_unanimous):
+def main(dataset_file, model_list_str, extra_calls, size, num_workers, temperature, max_new_tokens, sc_after_unanimous, output_dir=None):
+    global inference_engine
+    
+    if output_dir is None:
+        output_dir = "./EXP_Weak_Compositions"
+    
     if not model_list_str or model_list_str.strip() == "":
         model_list = []
     else:
@@ -351,6 +356,11 @@ def main(dataset_file, model_list_str, extra_calls, size, num_workers, temperatu
     if not model_list:
         print("Model list is empty. Please provide models via --model_list.")
         return
+
+    # Initialize cached inference engine ONCE - models load to GPU memory here
+    print("[*] Initializing cached inference engine...")
+    inference_engine = CachedInferenceEngine()
+    print("[✓] Models are now in GPU memory and will NOT reload\n")
 
     if not os.path.isfile(dataset_file):
         print(f"Dataset file not found: {dataset_file}")
@@ -373,6 +383,11 @@ def main(dataset_file, model_list_str, extra_calls, size, num_workers, temperatu
 
     results = []
     total_token_usage = {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}
+    
+    os.makedirs(output_dir, exist_ok=True)
+    now_str = datetime.now().strftime("%Y%m%d_%H%M%S")
+    checkpoint_interval = 50  # Save every 50 samples
+    batch_num = 0
 
     with ThreadPoolExecutor(max_workers=num_workers) as executor:
         futures = {}
@@ -395,14 +410,37 @@ def main(dataset_file, model_list_str, extra_calls, size, num_workers, temperatu
                 total_token_usage["prompt_tokens"] += int(usage.get("prompt_tokens", 0) or 0)
                 total_token_usage["completion_tokens"] += int(usage.get("completion_tokens", 0) or 0)
                 total_token_usage["total_tokens"] += int(usage.get("total_tokens", 0) or 0)
+            
+            # Save intermediate checkpoint every 50 samples
+            if len(results) % checkpoint_interval == 0:
+                batch_num += 1
+                correct_so_far = sum(1 for r in results if r.get("is_correct"))
+                accuracy_so_far = correct_so_far / len(results) if results else 0.0
+                
+                checkpoint_fn = os.path.join(output_dir, f"GSM_FromScratch_{now_str}_batch{batch_num}.json")
+                checkpoint_data = {
+                    "strategy": "Hierarchy_Consistency_From_Scratch_GSM",
+                    "timestamp": now_str,
+                    "batch_number": batch_num,
+                    "samples_processed": len(results),
+                    "question_count": question_count,
+                    "extra_calls": extra_calls,
+                    "size": size,
+                    "model_list": model_list,
+                    "temperature": temperature,
+                    "max_new_tokens": max_new_tokens,
+                    "token_usage": total_token_usage,
+                    "results": results[:],
+                    "accuracy_so_far": accuracy_so_far,
+                    "correct_so_far": correct_so_far,
+                }
+                with open(checkpoint_fn, "w", encoding="utf-8") as f:
+                    json.dump(checkpoint_data, f, indent=2, ensure_ascii=False)
+                print(f"[Checkpoint {batch_num}] Saved {len(results)} samples to {checkpoint_fn}")
 
     correct_count = sum(1 for r in results if r.get("is_correct"))
     accuracy = correct_count / question_count if question_count else 0.0
 
-    output_dir = "./EXP_Weak_Compositions"
-    os.makedirs(output_dir, exist_ok=True)
-
-    now_str = datetime.now().strftime("%Y%m%d_%H%M%S")
     out_fn = os.path.join(output_dir, f"GSM_FromScratch_{now_str}.json")
 
     output_data = {
@@ -443,6 +481,7 @@ def orchestrate(
     temperature: float = 0.3,
     max_new_tokens: int = 4096,
     sc_after_unanimous: bool = True,
+    output_dir: str = None,
 ):
     if dataset_file is None:
         script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -458,5 +497,6 @@ def orchestrate(
         temperature=temperature,
         max_new_tokens=max_new_tokens,
         sc_after_unanimous=sc_after_unanimous,
+        output_dir=output_dir,
     )
 
