@@ -1,0 +1,18 @@
+{
+  "timestamp": "20260222_180831",
+  "dataset_path": "data/gpqa_shuffled.json",
+  "model_list": [
+    "Qwen/Qwen2.5-7B-Instruct"
+  ],
+  "temperature": 0.0,
+  "max_new_tokens": 512,
+  "sample_size_requested": 5,
+  "num_threads": 5,
+  "seed": 42,
+  "provider": "modal-gpu-a100",
+  "prompts": {
+    "system": "You are a PhD student in science. Reason step by step through the following question and provide the best answer. Review what you have done and make sure you have not made any mistakes. Give your single-letter choice as '##Answer: X##'.",
+    "user_template": "Question:\n{question}\n\nChoices:\n{choices}\n",
+    "format": "\nPlease provide your final single-letter answer in the format: ##Answer: X##."
+  }
+}

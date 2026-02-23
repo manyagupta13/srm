@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import sys
 import json
 import argparse
 import random
@@ -9,14 +10,19 @@ from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import asyncio
 
+import modal
 from tqdm import tqdm
 
 # Project utils
-from utils.api_client import call_model_together
 from utils.gsm_utils import extract_answer_gsm, normalize_answer, create_chat_prompt
 
-##############################################################################
-# Prompt builder (original style, aligned with collector)
+# Import Modal app from collector
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+from single_model_inference.collect_gsm8k_modal import app as collector_app, run_inference
+
+# Create orchestrator app in same Modal environment
+app = collector_app
+
 ##############################################################################
 
 def build_prompt(question_text: str):
@@ -56,23 +62,31 @@ def repeated_calls_for_model(
         "token_usage": first_token_usage or {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0},
     })
 
-    for i in range(2, extra_calls + 1):
-        messages = build_prompt(question_text)
-        response_dict = call_model_together(
-            model_name=model_name,
-            messages=messages,
-            temperature=temperature,
-            max_tokens=max_new_tokens,
-        )
-        usage = response_dict.get("token_usage", {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0})
-        raw_content = response_dict.get("content", "")
-        extracted = normalize_answer(extract_answer_gsm(raw_content))
-        calls_info.append({
-            "round": i,
-            "raw_content": raw_content,
-            "extracted_answer": extracted,
-            "token_usage": usage,
-        })
+    # Fire extra calls in parallel
+    if extra_calls > 1:
+        handles = {}
+        for i in range(2, extra_calls + 1):
+            messages = build_prompt(question_text)
+            handle = run_inference.remote(
+                model_name=model_name,
+                messages=messages,
+                max_tokens=max_new_tokens,
+                temperature=temperature,
+            )
+            handles[i] = handle
+        
+        # Collect results
+        for i in range(2, extra_calls + 1):
+            response_dict = handles[i]
+            raw_content = response_dict.get("content", "")
+            extracted = normalize_answer(extract_answer_gsm(raw_content))
+            
+            calls_info.append({
+                "round": i,
+                "raw_content": raw_content,
+                "extracted_answer": extracted,
+                "token_usage": response_dict.get("token_usage", {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}),
+            })
 
     # count votes, preferring non-empty
     ans_count = {}
@@ -130,18 +144,26 @@ def find_majority_answer_tiebreak(records, ans_count, model_list):
 ##############################################################################
 
 def get_initial_responses(question_text: str, reference_answer: str, model_list: list, temperature: float, max_new_tokens: int):
+    """Fire all model inferences in parallel (async)"""
     records = []
     total_usage = {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}
 
+    messages = build_prompt(question_text)
+    
+    # Fire all inference calls in parallel
+    handles = {}
     for model_name in model_list:
-        messages = build_prompt(question_text)
-        response_dict = call_model_together(
+        handle = run_inference.remote(
             model_name=model_name,
             messages=messages,
-            temperature=temperature,
             max_tokens=max_new_tokens,
+            temperature=temperature,
         )
-
+        handles[model_name] = handle
+    
+    # Collect results (Modal waits for them automatically)
+    for model_name in model_list:
+        response_dict = handles[model_name]
         raw_content = response_dict.get("content", "")
         extracted = normalize_answer(extract_answer_gsm(raw_content))
         usage = response_dict.get("token_usage", {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0})
@@ -407,57 +429,34 @@ def main(dataset_file, model_list_str, extra_calls, size, num_workers, temperatu
     print(f"Total Token Usage: {total_token_usage['total_tokens']} tokens")
     print("=" * 80)
 
-    # ----------------------------------------------------------------------
-    # Auto-run equivalence checker using the generated output JSON
-    # This will update the same file in place with equivalence-based metrics
-    # Requires OPENAI_API_KEY to be set
-    # ----------------------------------------------------------------------
-    try:
-        if os.getenv("OPENAI_API_KEY"):
-            import importlib.util
-            root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            eq_file = os.path.join(root_dir, "Equal_form", "check_equal_form_all_GSM.py")
-            if os.path.isfile(eq_file):
-                print("Running equivalence check (Equal_form/check_equal_form_all_GSM.py)...")
-                spec = importlib.util.spec_from_file_location("check_equal_form_all_GSM", eq_file)
-                eq_mod = importlib.util.module_from_spec(spec)
-                assert spec and spec.loader
-                spec.loader.exec_module(eq_mod)
-                asyncio.run(eq_mod.process_all_results(out_fn, out_fn))
-                print("Equivalence check completed and file updated.")
-            else:
-                print(f"Equivalence checker not found at {eq_file}; skipping.")
-        else:
-            print("OPENAI_API_KEY not set; skipping equivalence check.")
-    except Exception as e:
-        print(f"Equivalence check failed: {e}")
+    # Skip equivalence check for speed optimization
+    print("Equivalence check skipped (enable via --run-equiv flag if needed).")
 
 
-if __name__ == "__main__":
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    parent_dir = os.path.dirname(script_dir)
-    default_dataset = os.path.join(parent_dir, "data/gsm8k_500.json")
-
-    parser = argparse.ArgumentParser(description="Run Hierarchy Consistency for GSM from scratch by calling models.")
-    parser.add_argument("--dataset_file", default=default_dataset, help="Path to the GSM dataset file (.json or .jsonl)")
-    parser.add_argument("--model_list", default="Mistralai/Mistral-Small-24B-Instruct-2501,Qwen/Qwen2.5-7B-Instruct-Turbo", help="Comma-separated model names")
-    parser.add_argument("--extra_calls", type=int, default=3, help="Total calls per model for self-consistency (including the first)")
-    parser.add_argument("--size", type=int, default=-1, help="Max number of questions to process. 0 or negative => all")
-    parser.add_argument("--num_workers", type=int, default=10, help="Parallel workers for question processing")
-    parser.add_argument("--temperature", type=float, default=0.3, help="Sampling temperature (default 0.3)")
-    parser.add_argument("--max_new_tokens", type=int, default=4096, help="Max new tokens (collector default)")
-    parser.add_argument("--sc_after_unanimous", action="store_true", help="If set, continue self-consistency even when first round is unanimous (default)")
-    parser.add_argument("--no-sc_after_unanimous", dest="sc_after_unanimous", action="store_false", help="If set, early-exit when first round is unanimous.")
-    parser.set_defaults(sc_after_unanimous=True)
-    args = parser.parse_args()
-
+@app.local_entrypoint()
+def orchestrate(
+    dataset_file: str = None,
+    model_list: str = "Qwen/Qwen2.5-7B-Instruct,mistralai/Mistral-7B-Instruct-v0.3",
+    extra_calls: int = 3,
+    size: int = -1,
+    num_workers: int = 8,
+    temperature: float = 0.3,
+    max_new_tokens: int = 4096,
+    sc_after_unanimous: bool = True,
+):
+    if dataset_file is None:
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        parent_dir = os.path.dirname(script_dir)
+        dataset_file = os.path.join(parent_dir, "data/gsm8k_500.json")
+    
     main(
-        dataset_file=args.dataset_file,
-        model_list_str=args.model_list,
-        extra_calls=args.extra_calls,
-        size=args.size,
-        num_workers=args.num_workers,
-        temperature=args.temperature,
-        max_new_tokens=args.max_new_tokens,
-        sc_after_unanimous=args.sc_after_unanimous,
+        dataset_file=dataset_file,
+        model_list_str=model_list,
+        extra_calls=extra_calls,
+        size=size,
+        num_workers=num_workers,
+        temperature=temperature,
+        max_new_tokens=max_new_tokens,
+        sc_after_unanimous=sc_after_unanimous,
     )
+

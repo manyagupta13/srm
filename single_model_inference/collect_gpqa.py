@@ -1,6 +1,7 @@
 # collect_GPQA_unify.py
 
 import os
+import sys
 import json
 import logging
 import argparse
@@ -10,16 +11,90 @@ from datetime import datetime
 from typing import List, Dict
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
+import modal
 from tqdm import tqdm
 from datasets import load_dataset
+import re
 
-# === Keep GPQA utility functions ===
-from utils.gpqa_utils import (
-    extract_answer_gpqa,
-)
+app = modal.App("gpqa-inference-v2")
+image = (modal.Image.debian_slim()
+    .pip_install(["torch>=2.0.0", "transformers>=4.30.0", "accelerate", "datasets", "tqdm"]))
 
-# === Change to import the call function for Together API ===
-from utils.api_client import call_model_together
+def extract_answer_gpqa(text: str, valid_choices: List[str]) -> str:
+    """
+    A more robust answer extractor for GPQA multiple-choice questions.
+    It tries several common formats in order of priority, returning the uppercase letter upon the first match, otherwise returns an empty string.
+    """
+    valid = {c[:1].upper() for c in valid_choices}
+
+    # 1) "Answer: X" - most reliable
+    m = re.search(r'answer[^A-Za-z0-9]*([A-D])', text, flags=re.I)
+    if m:
+        ans = m.group(1).upper()
+        if ans in valid:
+            return ans
+
+    # 2) Wrapped in double hashes like "## ... X ##"
+    m = re.search(r'##\s*([A-D])\s*##', text)
+    if m:
+        ans = m.group(1).upper()
+        if ans in valid:
+            return ans
+
+    # 3) A single letter on its own line
+    for line in text.splitlines():
+        s = line.strip().upper()
+        if s in valid and len(s) == 1:
+            return s
+
+    # 4) Parentheses or at the end like "...(X)" or " X)" (takes the last one in reverse order)
+    for m in reversed(re.findall(r'\(([A-D])\)', text)):
+        ans = m.upper()
+        if ans in valid:
+            return ans
+
+    # 5) Fallback to the original "space + letter" strategy (still takes the last one)
+    for m in reversed(re.findall(r'\s([A-D])', text)):
+        ans = m.upper()
+        if ans in valid:
+            return ans
+
+    m = re.search(r"Final Answer: \(([A-Z])\)", text)
+    if m:
+        ans = m.group(1).upper()
+        if ans in valid:
+            return ans
+    return ""
+
+@app.function(image=image, gpu="A100-40GB", timeout=600)
+def run_inference(model_name: str, messages, max_tokens: int = 512, temperature: float = 0.0, top_p: float = 1.0, top_k: int = 1, decode_seed: int = 42):
+    import torch
+    from transformers import AutoModelForCausalLM, AutoTokenizer
+    
+    torch.manual_seed(decode_seed)
+    
+    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    model = AutoModelForCausalLM.from_pretrained(model_name, torch_dtype=torch.float16, device_map="auto")
+    
+    text = ""
+    for msg in messages:
+        if msg.get("role") == "system":
+            text += f"{msg.get('content', '')}\n\n"
+        else:
+            text += msg.get("content", "")
+    
+    inputs = tokenizer(text, return_tensors="pt").to(model.device)
+    with torch.no_grad():
+        gen_kwargs = {"max_new_tokens": max_tokens, "top_p": top_p, "top_k": top_k}
+        if temperature > 0.0:
+            gen_kwargs["temperature"] = temperature
+            gen_kwargs["do_sample"] = True
+        else:
+            gen_kwargs["do_sample"] = False
+        outputs = model.generate(**inputs, **gen_kwargs)
+    
+    generated_text = tokenizer.decode(outputs[0][inputs["input_ids"].shape[-1]:], skip_special_tokens=True)
+    return {"content": generated_text, "token_usage": {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}}
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -55,23 +130,23 @@ def _build_messages_from_templates(question_text: str, choices: List[str]) -> Li
     return messages
 
 def parse_arguments():
-    parser = argparse.ArgumentParser(description='Unified GPQA benchmark for multiple LLM providers (using Together API).')
-    parser.add_argument('--model_list', type=str, default="Qwen/Qwen2.5-72B-Instruct-Turbo",
-                        help='Comma-separated list of Together model names')
+    parser = argparse.ArgumentParser(description='GPQA benchmark using Modal GPU (A100) inference.')
+    parser.add_argument('--model_list', type=str, default="Qwen/Qwen2.5-7B-Instruct",
+                        help='Comma-separated list of HuggingFace model IDs')
     parser.add_argument('--sample_size', type=int, default=-1,
                         help='Number of questions to sample from GPQA dataset. -1 for all.')
     parser.add_argument('--temperature', type=float, default=0.0,
                         help='Sampling temperature')
     parser.add_argument('--top_p', type=float, default=1.0,
-                        help='Nucleus sampling p; default 1.0 for greedy-like behavior')
+                        help='Nucleus sampling p')
     parser.add_argument('--top_k', type=int, default=1,
-                        help='Top-k sampling; default 1 for greedy decoding')
+                        help='Top-k sampling')
     parser.add_argument('--decode_seed', type=int, default=42,
-                        help='Fixed decode seed if backend supports deterministic sampling')
-    parser.add_argument('--max_new_tokens', type=int, default=-1,
-                        help='Max tokens in each generation. -1 means default/undefined.')
-    parser.add_argument('--num_threads', type=int, default=50,
-                        help='Concurrent threads for processing (default 1 for determinism)')
+                        help='Random seed')
+    parser.add_argument('--max_new_tokens', type=int, default=512,
+                        help='Max tokens in each generation')
+    parser.add_argument('--num_threads', type=int, default=5,
+                        help='Concurrent threads for processing')
     parser.add_argument('--seed', type=int, default=42,
                         help='Random seed')
     parser.add_argument('--dataset_path', type=str, default="data/gpqa_shuffled.json",
@@ -81,10 +156,6 @@ def parse_arguments():
     return parser.parse_args()
 
 def main():
-    """ 
-    Main function: Use Together API to replace the original Google/OpenAI calls,
-    run GPQA tests on the specified list of models, and output JSON results.
-    """
     args = parse_arguments()
     random.seed(args.seed)
 
@@ -106,7 +177,7 @@ def main():
         data_list = list(dataset)
     except Exception as e:
         logger.error(f"Failed to load dataset from {args.dataset_path}: {e}")
-        return
+        sys.exit(1)
 
     # Sampling
     if 0 < args.sample_size < len(data_list):
@@ -122,6 +193,7 @@ def main():
         "sample_size_requested": args.sample_size,
         "num_threads": args.num_threads,
         "seed": args.seed,
+        "provider": "modal-gpu-a100",
         "prompts": {
             "system": SYSTEM_PROMPT,
             "user_template": USER_PROMPT_TEMPLATE,
@@ -133,43 +205,40 @@ def main():
 
     # Process models one by one (output to a separate folder for this run)
     for model in model_list:
-        logger.info(f"Processing model: {model} (via Together API)")
+        logger.info(f"Processing model: {model} (via Modal GPU A100)")
 
         results_for_this_model = []
         total_prompt_tokens = 0
         total_completion_tokens = 0
         total_tokens = 0
 
-        def process_one(item):
-            """Process a single GPQA question: send request, extract answer, check correctness, record token consumption, etc."""
+        def process_one(item, _model=model):
             question_text = item["question"]
             choices = item["choices"]
-            correct_answer = item.get("answer", "")  # Correct answer (single letter)
+            correct_answer = item.get("answer", "")
 
-            # Build Chat Prompt (using editable local templates)
             messages = _build_messages_from_templates(question_text, choices)
 
-            # Call Together model
-            resp = call_model_together(
-                model_name=model,
-                messages=messages,
-                max_tokens=args.max_new_tokens if args.max_new_tokens > 0 else None,
-                temperature=args.temperature,
-                top_p=args.top_p,
-                top_k=args.top_k,
-                seed=args.decode_seed,
-                # retry_count=... Add retry count here if needed
-            )
+            try:
+                resp = run_inference.remote(
+                    model_name=_model,
+                    messages=messages,
+                    max_tokens=args.max_new_tokens if args.max_new_tokens > 0 else 512,
+                    temperature=args.temperature,
+                    top_p=args.top_p,
+                    top_k=args.top_k,
+                    decode_seed=args.decode_seed,
+                )
+            except Exception as e:
+                logger.error(f"Inference error: {e}")
+                resp = {"content": f"ERROR: {e}", "token_usage": {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}}
 
             raw_output = resp.get("content", "")
             usage_details = resp.get("token_usage", {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0})
-            reasoning_content = resp.get("reasoning", "")
 
-            # Extract model answer
             extracted_answer = extract_answer_gpqa(raw_output, choices)
             is_correct = (extracted_answer == correct_answer)
 
-            # Record the actual system and user prompts used this time (set to empty if the role does not exist)
             system_prompt = ""
             user_prompt = ""
             for m in messages:
@@ -177,11 +246,10 @@ def main():
                     system_prompt = m.get("content", "")
                 elif m.get("role") == "user" and not user_prompt:
                     user_prompt = m.get("content", "")
-            # Expose the format snippet separately for subsequent statistics and parameter tuning
             format_prompt = FORMAT_PROMPT
 
             return {
-                "model": model,
+                "model": _model,
                 "question": question_text,
                 "choices": choices,
                 "correct_answer": correct_answer,
@@ -189,7 +257,7 @@ def main():
                 "user_prompt": user_prompt,
                 "format_prompt": format_prompt,
                 "model_response": raw_output,
-                "reasoning_content": reasoning_content,
+                "reasoning_content": "",
                 "extracted_answer": extracted_answer,
                 "is_correct": is_correct,
                 "token_usage": usage_details
@@ -219,7 +287,7 @@ def main():
         output_data = {
             "model": model,
             "timestamp": run_timestamp,
-            "provider": "together",
+            "provider": "modal-gpu-a100",
             "prompts": {
                 "system": SYSTEM_PROMPT,
                 "user_template": USER_PROMPT_TEMPLATE,
@@ -241,11 +309,43 @@ def main():
         with open(out_file, "w", encoding="utf-8") as f:
             json.dump(output_data, f, ensure_ascii=False, indent=2)
 
-        print(f"[*] Model={model} (via Together)  Accuracy={accuracy:.2%} "
+        print(f"[*] Model={model} (Modal GPU)  Accuracy={accuracy:.2%} "
               f"({correct_count}/{total_count}), Tokens: Prompt={total_prompt_tokens}, "
               f"Completion={total_completion_tokens}, Total={total_tokens}, saved to: {out_file}")
 
     logger.info("All models processed. Finished.")
+
+
+@app.local_entrypoint()
+def run(
+    model_list: str = "Qwen/Qwen2.5-7B-Instruct",
+    sample_size: int = -1,
+    temperature: float = 0.0,
+    top_p: float = 1.0,
+    top_k: int = 1,
+    decode_seed: int = 42,
+    max_new_tokens: int = 512,
+    num_threads: int = 5,
+    seed: int = 42,
+    dataset_path: str = "data/gpqa_shuffled.json",
+    output_dir: str = "./GPQA_response",
+):
+    import sys
+    sys.argv = [
+        sys.argv[0],
+        "--model_list", model_list,
+        "--sample_size", str(sample_size),
+        "--temperature", str(temperature),
+        "--top_p", str(top_p),
+        "--top_k", str(top_k),
+        "--decode_seed", str(decode_seed),
+        "--max_new_tokens", str(max_new_tokens),
+        "--num_threads", str(num_threads),
+        "--seed", str(seed),
+        "--dataset_path", dataset_path,
+        "--output_dir", output_dir,
+    ]
+    main()
 
 
 if __name__ == "__main__":
