@@ -1,0 +1,143 @@
+{
+  "strategy": "Hierarchy_Consistency_From_Scratch_GSM",
+  "timestamp": "20260223_004659",
+  "question_count": 2,
+  "extra_calls": 1,
+  "size": 2,
+  "model_list": [
+    "Qwen/Qwen2.5-7B-Instruct",
+    "mistralai/Mistral-7B-Instruct-v0.3"
+  ],
+  "temperature": 0.3,
+  "max_new_tokens": 4096,
+  "token_usage": {
+    "prompt_tokens": 0,
+    "completion_tokens": 0,
+    "total_tokens": 0
+  },
+  "results": [
+    {
+      "question": "The eighth-grade class held a bake-off. Kelsie made two times more cookies than Josh. Josh made one-fourth the number of cookies that Suzanne made. If Suzanne made 36 cookies, how many did Kelsie make?",
+      "reference_answer": "18",
+      "all_agree": true,
+      "final_answer": "18",
+      "is_correct": true,
+      "selected_model": "Qwen/Qwen2.5-7B-Instruct",
+      "reason": "highest_self_consistency(1.00)",
+      "model_records": [
+        {
+          "model_name": "Qwen/Qwen2.5-7B-Instruct",
+          "calls": [
+            {
+              "round": 1,
+              "raw_content": " To determine how many cookies Kelsie made, we need to follow these steps:\n\n1. **Determine how many cookies Josh made:**\n   - We know that Suzanne made 36 cookies.\n   - Josh made one-fourth the number of cookies that Suzanne made.\n   - Therefore, the number of cookies Josh made is:\n     \\[\n     \\text{Cookies made by Josh} = \\frac{1}{4} \\times 36 = 9\n     \\]\n\n2. **Determine how many cookies Kelsie made:**\n   - Kelsie made two times more cookies than Josh.\n   - Since Josh made 9 cookies, Kelsie made:\n     \\[\n     \\text{Cookies made by Kelsie} = 2 \\times 9 = 18\n     \\]\n\n#### 18\n\nThis is the number of cookies Kelsie made. #### 18 is the final answer.",
+              "extracted_answer": "18",
+              "token_usage": {
+                "prompt_tokens": 0,
+                "completion_tokens": 0,
+                "total_tokens": 0
+              }
+            }
+          ],
+          "vote_counts": {
+            "18": 1
+          },
+          "best_answer": "18",
+          "best_count": 1,
+          "total_usage": {
+            "prompt_tokens": 0,
+            "completion_tokens": 0,
+            "total_tokens": 0
+          }
+        },
+        {
+          "model_name": "mistralai/Mistral-7B-Instruct-v0.3",
+          "calls": [
+            {
+              "round": 1,
+              "raw_content": "\n\nReasoning:\n1. Let's denote the number of cookies Suzanne made as S.\n2. Josh made one-fourth of Suzanne's cookies, so Josh made S/4 cookies.\n3. Kelsie made two times more cookies than Josh, so Kelsie made 2 * (S/4) = (2/4) * S = (1/2) * S cookies.\n4. Since Suzanne made 36 cookies, Kelsie made (1/2) * 36 = 18 cookies.\n\n#### 18",
+              "extracted_answer": "18",
+              "token_usage": {
+                "prompt_tokens": 0,
+                "completion_tokens": 0,
+                "total_tokens": 0
+              }
+            }
+          ],
+          "vote_counts": {
+            "18": 1
+          },
+          "best_answer": "18",
+          "best_count": 1,
+          "total_usage": {
+            "prompt_tokens": 0,
+            "completion_tokens": 0,
+            "total_tokens": 0
+          }
+        }
+      ]
+    },
+    {
+      "question": "Rani is obsessed with sports cars. She wonders what the faster car ever made can go so she looks it up. What she finds out is that the fastest car was 1.25 times faster than the 2nd fastest car. The 2nd fastest car was 5 times faster than the average car. The average car can go 120 Miles per hour. How fast does the faster car go?",
+      "reference_answer": "750",
+      "all_agree": true,
+      "final_answer": "750",
+      "is_correct": true,
+      "selected_model": "Qwen/Qwen2.5-7B-Instruct",
+      "reason": "highest_self_consistency(1.00)",
+      "model_records": [
+        {
+          "model_name": "Qwen/Qwen2.5-7B-Instruct",
+          "calls": [
+            {
+              "round": 1,
+              "raw_content": " To determine how fast the fastest car goes, we need to follow these steps:\n\n1. **Determine the speed of the 2nd fastest car:**\n   - We know the average car can go 120 miles per hour.\n   - The 2nd fastest car is 5 times faster than the average car.\n   - Therefore, the speed of the 2nd fastest car is \\( 120 \\times 5 = 600 \\) miles per hour.\n\n2. **Determine the speed of the fastest car:**\n   - The fastest car is 1.25 times faster than the 2nd fastest car.\n   - Therefore, the speed of the fastest car is \\( 600 \\times 1.25 = 750 \\) miles per hour.\n\n#### 750\n\nThe fastest car can go 750 miles per hour. #### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### 750\n\n#### ",
+              "extracted_answer": "750",
+              "token_usage": {
+                "prompt_tokens": 0,
+                "completion_tokens": 0,
+                "total_tokens": 0
+              }
+            }
+          ],
+          "vote_counts": {
+            "750": 1
+          },
+          "best_answer": "750",
+          "best_count": 1,
+          "total_usage": {
+            "prompt_tokens": 0,
+            "completion_tokens": 0,
+            "total_tokens": 0
+          }
+        },
+        {
+          "model_name": "mistralai/Mistral-7B-Instruct-v0.3",
+          "calls": [
+            {
+              "round": 1,
+              "raw_content": "\n\nReasoning:\n1. The 2nd fastest car is 5 times faster than the average car, so its speed is 5 * 120 = 600 Miles per hour.\n2. The faster car is 1.25 times faster than the 2nd fastest car, so its speed is 1.25 * 600 = 750 Miles per hour.\n\n#### 750 Miles per hour",
+              "extracted_answer": "750",
+              "token_usage": {
+                "prompt_tokens": 0,
+                "completion_tokens": 0,
+                "total_tokens": 0
+              }
+            }
+          ],
+          "vote_counts": {
+            "750": 1
+          },
+          "best_answer": "750",
+          "best_count": 1,
+          "total_usage": {
+            "prompt_tokens": 0,
+            "completion_tokens": 0,
+            "total_tokens": 0
+          }
+        }
+      ]
+    }
+  ],
+  "accuracy": 1.0
+}

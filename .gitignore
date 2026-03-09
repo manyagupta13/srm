@@ -1,0 +1,23 @@
+*.txt
+!requirements.txt
+
+# Model checkpoints
+checkpoints/
+models/
+*.bin
+*.pt
+*.pth
+
+# Jupyter
+.ipynb_checkpoints
+*.ipynb
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+

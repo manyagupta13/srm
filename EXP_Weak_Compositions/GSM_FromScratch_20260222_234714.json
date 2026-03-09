@@ -1,0 +1,143 @@
+{
+  "strategy": "Hierarchy_Consistency_From_Scratch_GSM",
+  "timestamp": "20260222_234714",
+  "question_count": 2,
+  "extra_calls": 1,
+  "size": 2,
+  "model_list": [
+    "Qwen/Qwen2.5-7B-Instruct",
+    "mistralai/Mistral-7B-Instruct-v0.3"
+  ],
+  "temperature": 0.3,
+  "max_new_tokens": 4096,
+  "token_usage": {
+    "prompt_tokens": 0,
+    "completion_tokens": 0,
+    "total_tokens": 0
+  },
+  "results": [
+    {
+      "question": "James is putting together 4 tables.  Each table has 4 legs and each leg needs 2 screws.  He has 40 screws.  How many screws will he have left over?",
+      "reference_answer": "8",
+      "all_agree": true,
+      "final_answer": "8",
+      "is_correct": true,
+      "selected_model": "Qwen/Qwen2.5-7B-Instruct",
+      "reason": "highest_self_consistency(1.00)",
+      "model_records": [
+        {
+          "model_name": "Qwen/Qwen2.5-7B-Instruct",
+          "calls": [
+            {
+              "round": 1,
+              "raw_content": " ####\nTo determine how many screws James will have left over, we need to follow these steps:\n\n1. **Calculate the total number of legs needed for all tables:**\n   - Each table has 4 legs.\n   - James is making 4 tables.\n   \\[\n   4 \\text{ tables} \\times 4 \\text{ legs per table} = 16 \\text{ legs}\n   \\]\n\n2. **Calculate the total number of screws needed for all legs:**\n   - Each leg requires 2 screws.\n   \\[\n   16 \\text{ legs} \\times 2 \\text{ screws per leg} = 32 \\text{ screws}\n   \\]\n\n3. **Determine how many screws James will have left over:**\n   - James starts with 40 screws.\n   - He uses 32 screws.\n   \\[\n   40 \\text{ screws} - 32 \\text{ screws used} = 8 \\text{ screws left over}\n   \\]\n\n#### 8\nThe final answer is 8 screws left over. #### 8",
+              "extracted_answer": "8",
+              "token_usage": {
+                "prompt_tokens": 0,
+                "completion_tokens": 0,
+                "total_tokens": 0
+              }
+            }
+          ],
+          "vote_counts": {
+            "8": 1
+          },
+          "best_answer": "8",
+          "best_count": 1,
+          "total_usage": {
+            "prompt_tokens": 0,
+            "completion_tokens": 0,
+            "total_tokens": 0
+          }
+        },
+        {
+          "model_name": "mistralai/Mistral-7B-Instruct-v0.3",
+          "calls": [
+            {
+              "round": 1,
+              "raw_content": "\n\nReasoning:\n1. Each table requires 4 * 2 = 8 screws.\n2. Since James is putting together 4 tables, he needs 4 * 8 = 32 screws.\n3. However, James has 40 screws.\n4. To find out how many screws he has left over, we subtract the number of screws he needs from the number of screws he has.\n5. So, 40 - 32 = 8 screws.\n\n#### 8 screws",
+              "extracted_answer": "8",
+              "token_usage": {
+                "prompt_tokens": 0,
+                "completion_tokens": 0,
+                "total_tokens": 0
+              }
+            }
+          ],
+          "vote_counts": {
+            "8": 1
+          },
+          "best_answer": "8",
+          "best_count": 1,
+          "total_usage": {
+            "prompt_tokens": 0,
+            "completion_tokens": 0,
+            "total_tokens": 0
+          }
+        }
+      ]
+    },
+    {
+      "question": "A three-toed sloth moves very slowly, and only eats when he is up in his tree.  For a meal of berries, it takes the sloth 4 hours to make the trip down the tree, pick up berries, and climb back up into his tree.  Assuming he picks the same number of berries on each trip, what is the least number of berries he can pick up per trip down to the ground if he wants to collect 24 berries in 8 hours?",
+      "reference_answer": "12",
+      "all_agree": false,
+      "final_answer": "6",
+      "is_correct": false,
+      "selected_model": "Qwen/Qwen2.5-7B-Instruct",
+      "reason": "highest_self_consistency(1.00)",
+      "model_records": [
+        {
+          "model_name": "Qwen/Qwen2.5-7B-Instruct",
+          "calls": [
+            {
+              "round": 1,
+              "raw_content": " To determine the least number of berries the sloth can pick up per trip down to the ground, we need to follow these steps:\n\n1. **Calculate the total time available for berry collection:**\n   - The sloth has 8 hours in total.\n\n2. **Determine the time taken for one round trip:**\n   - It takes the sloth 4 hours to make one round trip (down, pick berries, and back up).\n\n3. **Calculate the number of round trips the sloth can make in 8 hours:**\n   - Since each round trip takes 4 hours, the number of round trips in 8 hours is:\n     \\[\n     \\frac{8 \\text{ hours}}{4 \\text{ hours/round trip}} = 2 \\text{ round trips}\n     \\]\n\n4. **Determine the total number of berries collected in 8 hours:**\n   - The sloth wants to collect 24 berries in 8 hours.\n\n5. **Calculate the number of berries picked per round trip:**\n   - If the sloth makes 2 round trips and collects 24 berries in total, the number of berries picked per round trip is:\n     \\[\n     \\frac{24 \\text{ berries}}{2 \\text{ round trips}} = 12 \\text{ berries/round trip}\n     \\]\n\n6. **Determine the number of berries picked per trip down:**\n   - Since the sloth picks the same number of berries on each trip down, the number of berries picked per trip down is half of the berries picked per round trip:\n     \\[\n     \\frac{12 \\text{ berries/round trip}}{2} = 6 \\text{ berries/trip down}\n     \\]\n\nTherefore, the least number of berries the sloth can pick up per trip down to the ground is 6.\n\n#### 6",
+              "extracted_answer": "6",
+              "token_usage": {
+                "prompt_tokens": 0,
+                "completion_tokens": 0,
+                "total_tokens": 0
+              }
+            }
+          ],
+          "vote_counts": {
+            "6": 1
+          },
+          "best_answer": "6",
+          "best_count": 1,
+          "total_usage": {
+            "prompt_tokens": 0,
+            "completion_tokens": 0,
+            "total_tokens": 0
+          }
+        },
+        {
+          "model_name": "mistralai/Mistral-7B-Instruct-v0.3",
+          "calls": [
+            {
+              "round": 1,
+              "raw_content": "\n\nReasoning:\n1. The sloth takes 4 hours to make a single trip down the tree, pick up berries, and climb back up.\n2. In 8 hours, the sloth can make 8 / 4 = 2 trips down the tree and back up.\n3. To collect 24 berries in 8 hours, the sloth needs to pick up 24 berries / 2 trips = 12 berries per trip.\n\n#### 12",
+              "extracted_answer": "12",
+              "token_usage": {
+                "prompt_tokens": 0,
+                "completion_tokens": 0,
+                "total_tokens": 0
+              }
+            }
+          ],
+          "vote_counts": {
+            "12": 1
+          },
+          "best_answer": "12",
+          "best_count": 1,
+          "total_usage": {
+            "prompt_tokens": 0,
+            "completion_tokens": 0,
+            "total_tokens": 0
+          }
+        }
+      ]
+    }
+  ],
+  "accuracy": 0.5
+}

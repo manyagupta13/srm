@@ -1,0 +1,6 @@
+{
+  "timestamp": "20260222_224149",
+  "provider": "modal-gpu-a100",
+  "dataset": "gsm8k_500",
+  "sample_size": 5
+}

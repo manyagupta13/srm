@@ -1,0 +1,143 @@
+{
+  "strategy": "Hierarchy_Consistency_From_Scratch_GSM",
+  "timestamp": "20260222_232822",
+  "question_count": 2,
+  "extra_calls": 1,
+  "size": 2,
+  "model_list": [
+    "Qwen/Qwen2.5-7B-Instruct",
+    "mistralai/Mistral-7B-Instruct-v0.3"
+  ],
+  "temperature": 0.3,
+  "max_new_tokens": 4096,
+  "token_usage": {
+    "prompt_tokens": 0,
+    "completion_tokens": 0,
+    "total_tokens": 0
+  },
+  "results": [
+    {
+      "question": "If every second, a bubbling spring creates a new jellyfish, how many jellyfish would 5 springs working at the same rate create in 4 hours?",
+      "reference_answer": "72000",
+      "all_agree": true,
+      "final_answer": "",
+      "is_correct": false,
+      "selected_model": "Qwen/Qwen2.5-7B-Instruct",
+      "reason": "highest_self_consistency(1.00)",
+      "model_records": [
+        {
+          "model_name": "Qwen/Qwen2.5-7B-Instruct",
+          "calls": [
+            {
+              "round": 1,
+              "raw_content": "",
+              "extracted_answer": "",
+              "token_usage": {
+                "prompt_tokens": 0,
+                "completion_tokens": 0,
+                "total_tokens": 0
+              }
+            }
+          ],
+          "vote_counts": {
+            "": 1
+          },
+          "best_answer": "",
+          "best_count": 1,
+          "total_usage": {
+            "prompt_tokens": 0,
+            "completion_tokens": 0,
+            "total_tokens": 0
+          }
+        },
+        {
+          "model_name": "mistralai/Mistral-7B-Instruct-v0.3",
+          "calls": [
+            {
+              "round": 1,
+              "raw_content": "",
+              "extracted_answer": "",
+              "token_usage": {
+                "prompt_tokens": 0,
+                "completion_tokens": 0,
+                "total_tokens": 0
+              }
+            }
+          ],
+          "vote_counts": {
+            "": 1
+          },
+          "best_answer": "",
+          "best_count": 1,
+          "total_usage": {
+            "prompt_tokens": 0,
+            "completion_tokens": 0,
+            "total_tokens": 0
+          }
+        }
+      ]
+    },
+    {
+      "question": "Finn watches 11 tadpoles swimming in the pond.  Suddenly he sees 6 of them come out of hiding from under a lily pad ,then he sees 2 of them hide under a rock.  How many tadpoles can Finn see in the pond now?",
+      "reference_answer": "15",
+      "all_agree": true,
+      "final_answer": "",
+      "is_correct": false,
+      "selected_model": "Qwen/Qwen2.5-7B-Instruct",
+      "reason": "highest_self_consistency(1.00)",
+      "model_records": [
+        {
+          "model_name": "Qwen/Qwen2.5-7B-Instruct",
+          "calls": [
+            {
+              "round": 1,
+              "raw_content": "",
+              "extracted_answer": "",
+              "token_usage": {
+                "prompt_tokens": 0,
+                "completion_tokens": 0,
+                "total_tokens": 0
+              }
+            }
+          ],
+          "vote_counts": {
+            "": 1
+          },
+          "best_answer": "",
+          "best_count": 1,
+          "total_usage": {
+            "prompt_tokens": 0,
+            "completion_tokens": 0,
+            "total_tokens": 0
+          }
+        },
+        {
+          "model_name": "mistralai/Mistral-7B-Instruct-v0.3",
+          "calls": [
+            {
+              "round": 1,
+              "raw_content": "",
+              "extracted_answer": "",
+              "token_usage": {
+                "prompt_tokens": 0,
+                "completion_tokens": 0,
+                "total_tokens": 0
+              }
+            }
+          ],
+          "vote_counts": {
+            "": 1
+          },
+          "best_answer": "",
+          "best_count": 1,
+          "total_usage": {
+            "prompt_tokens": 0,
+            "completion_tokens": 0,
+            "total_tokens": 0
+          }
+        }
+      ]
+    }
+  ],
+  "accuracy": 0.0
+}
