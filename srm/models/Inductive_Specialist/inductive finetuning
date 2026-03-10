@@ -1,0 +1,87 @@
+import unsloth  # must be first
+from datasets import concatenate_datasets, load_dataset
+from transformers import EarlyStoppingCallback
+from trl import SFTTrainer, SFTConfig
+from unsloth import FastLanguageModel
+
+# ── Kaggle Setup ─────────────────────────────────────────
+# 1. Add your datasets as Kaggle inputs (clutrr, scansrmset)
+# 2. Update the paths below to match your Kaggle username
+# 3. Accelerator: T4 x2 (NOT P100)
+# 4. Run: !pip install unsloth trl datasets -q
+# 5. Then: !python finetune_inductive.py
+
+SCAN_TRAIN   = "/kaggle/input/datasets/shreeyambangeraiitr/scansrmset/train.jsonl"
+SCAN_TEST    = "/kaggle/input/datasets/shreeyambangeraiitr/scansrmset/test.jsonl"
+CLUTRR_TRAIN = "/kaggle/input/datasets/shreeyambangeraiitr/clutrr/train.jsonl"
+CLUTRR_TEST  = "/kaggle/input/datasets/shreeyambangeraiitr/clutrr/test.jsonl"
+OUTPUT_DIR   = "./lora-inductive/"
+
+# ── Format ───────────────────────────────────────────────
+def format_scan(ex):
+    return {"text": f"Translate this command to actions:\n{ex['commands']}\nAnswer: {ex['actions']}"}
+
+def format_clutrr(ex):
+    return {"text": f"Infer the relationship from the story:\n{ex['clean_story']}\nQuery: {ex['query']}\nAnswer: {ex['target']}"}
+
+# ── Data ─────────────────────────────────────────────────
+scan_train   = load_dataset("json", data_files=SCAN_TRAIN,   split="train")
+scan_test    = load_dataset("json", data_files=SCAN_TEST,    split="train")
+clutrr_train = load_dataset("json", data_files=CLUTRR_TRAIN, split="train")
+clutrr_test  = load_dataset("json", data_files=CLUTRR_TEST,  split="train")
+
+scan_train   = scan_train.map(format_scan,     remove_columns=scan_train.column_names)
+scan_test    = scan_test.map(format_scan,      remove_columns=scan_test.column_names)
+clutrr_train = clutrr_train.map(format_clutrr, remove_columns=clutrr_train.column_names)
+clutrr_test  = clutrr_test.map(format_clutrr,  remove_columns=clutrr_test.column_names)
+
+train_dataset = concatenate_datasets([scan_train, clutrr_train]).shuffle(seed=42)
+eval_dataset  = concatenate_datasets([scan_test,  clutrr_test]).shuffle(seed=42)
+
+# ── Model ─────────────────────────────────────────────────
+model, tokenizer = FastLanguageModel.from_pretrained(
+    "Qwen/Qwen2.5-3B", load_in_4bit=True, max_seq_length=512
+)
+model = FastLanguageModel.get_peft_model(
+    model,
+    r=16,
+    target_modules=["q_proj", "k_proj", "v_proj", "o_proj"],
+    lora_alpha=16,
+    lora_dropout=0,
+)
+
+# ── Train ─────────────────────────────────────────────────
+trainer = SFTTrainer(
+    model=model,
+    train_dataset=train_dataset,
+    eval_dataset=eval_dataset,
+    callbacks=[EarlyStoppingCallback(early_stopping_patience=3)],
+    args=SFTConfig(
+        output_dir=OUTPUT_DIR,
+        per_device_train_batch_size=4,
+        gradient_accumulation_steps=4,
+        max_steps=500,
+        learning_rate=2e-4,
+        fp16=True,
+        logging_steps=10,
+        report_to="none",
+        max_seq_length=512,
+        dataset_text_field="text",
+        # early stopping requires eval and best model tracking
+        eval_strategy="steps",
+        eval_steps=50,
+        save_strategy="steps",
+        save_steps=50,
+        load_best_model_at_end=True,
+        metric_for_best_model="eval_loss",
+        greater_is_better=False,
+    ),
+)
+trainer.train()
+
+# ── Save ─────────────────────────────────────────────────
+# Output will appear in Kaggle's /kaggle/working/lora-inductive/
+# Download it from the Output tab after the run completes
+model.save_pretrained(OUTPUT_DIR)
+tokenizer.save_pretrained(OUTPUT_DIR)
+print(f"✅ Adapter saved to {OUTPUT_DIR}")
